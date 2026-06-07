@@ -1,0 +1,8 @@
+export { default as Login } from './Login'
+export { default as Register } from './Register'
+export { default as Feed } from './Feed'
+export { default as ProjectDetail } from './ProjectDetail'
+export { default as CreateProject } from './CreateProject'
+export { default as Profile } from './Profile'
+export { default as EditProfile } from './EditProfile'
+export { default as PublicProfile } from './PublicProfile'
