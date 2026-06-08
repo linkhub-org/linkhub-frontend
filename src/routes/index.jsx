@@ -10,6 +10,7 @@ import CreateProject from '../pages/CreateProject'
 import Profile from '../pages/Profile'
 import EditProfile from '../pages/EditProfile'
 import PublicProfile from '../pages/PublicProfile'
+import ProjectApplications from '../pages/ProjectApplications'
 
 // Rota protegida — redireciona para login se não autenticado
 function PrivateRoute({ children }) {
@@ -56,6 +57,7 @@ export default function AppRoutes() {
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/profile/edit" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
         <Route path="/users/:id" element={<PrivateRoute><PublicProfile /></PrivateRoute>} />
+        <Route path="/projects/:id/applications" element={<PrivateRoute><ProjectApplications /></PrivateRoute>} />
 
         {/* Redireciona raiz para feed */}
         <Route path="/" element={<Navigate to="/feed" replace />} />
