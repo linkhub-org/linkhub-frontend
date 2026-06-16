@@ -15,6 +15,9 @@ export default function Header() {
         <Link to="/feed" className="text-sm text-gray-600 hover:text-blue-600">
           Feed
         </Link>
+        <Link to="/my-projects" className="text-sm text-gray-600 hover:text-blue-600">
+          Meus Projetos
+        </Link>
         <Link to="/profile" className="text-sm text-gray-600 hover:text-blue-600">
           Perfil
         </Link>
