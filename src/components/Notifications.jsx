@@ -1,34 +1,46 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getNotifications, markAsRead } from '../services/notifications'
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
 
   async function fetchNotifications() {
     try {
       const { data } = await getNotifications()
       setNotifications(data)
     } catch {
-      // silencioso — não interrompe o fluxo
+      // silencioso
     }
   }
 
-  // Polling a cada 30s
   useEffect(() => {
     fetchNotifications()
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  async function handleMarkAsRead(id) {
-    try {
-      await markAsRead(id)
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-      )
-    } catch {
-      // silencioso
+  async function handleClick(notification) {
+    // Marca como lida
+    if (!notification.is_read) {
+      try {
+        await markAsRead(notification.id)
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id ? { ...n, is_read: true } : n
+          )
+        )
+      } catch {
+        // silencioso
+      }
+    }
+
+    // Navega para o projeto se houver project_id
+    if (notification.project_id) {
+      setOpen(false)
+      navigate(`/projects/${notification.project_id}`)
     }
   }
 
@@ -81,13 +93,14 @@ export default function Notifications() {
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`px-4 py-3 border-b border-gray-50 flex justify-between items-start gap-2 ${
+                  onClick={() => handleClick(n)}
+                  className={`px-4 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition ${
                     !n.is_read ? 'bg-blue-50' : ''
                   }`}
                 >
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-700">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm text-gray-700">{n.message}</p>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-gray-400">
                       {new Date(n.created_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit',
@@ -95,15 +108,10 @@ export default function Notifications() {
                         minute: '2-digit',
                       })}
                     </p>
+                    {!n.is_read && (
+                      <span className="text-xs text-blue-500">● não lida</span>
+                    )}
                   </div>
-                  {!n.is_read && (
-                    <button
-                      onClick={() => handleMarkAsRead(n.id)}
-                      className="text-xs text-blue-600 hover:underline whitespace-nowrap"
-                    >
-                      Marcar lida
-                    </button>
-                  )}
                 </div>
               ))
             )}
