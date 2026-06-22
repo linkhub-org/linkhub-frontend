@@ -8,3 +8,6 @@ export const updateMe = (data) =>
 
 export const getPublicProfile = (id) =>
   api.get(`/users/${id}/`)
+
+export const getMyProjects = () =>
+  api.get('/users/me/projects/')
