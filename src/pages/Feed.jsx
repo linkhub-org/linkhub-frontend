@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Header from '../components/Header'
 import { getProjects } from '../services/projects'
+import { getRecommendedProjects } from '../services/recommendations'
 
 function getStatusStyle(status) {
   switch (status) {
@@ -38,8 +39,13 @@ export default function Feed() {
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects', search, category, status],
-    queryFn: () =>
-      getProjects({ search, category, status }).then((res) => res.data),
+    queryFn: () => getProjects({ search, category, status }).then((res) => res.data),
+  })
+
+  const { data: recommended, isLoading: loadingRec } = useQuery({
+    queryKey: ['recommend-projects'],
+    queryFn: getRecommendedProjects,
+    staleTime: 1000 * 60 * 5, // cache de 5 min
   })
 
   return (
@@ -47,6 +53,39 @@ export default function Feed() {
       <Header />
 
       <main className="max-w-2xl mx-auto mt-8 px-4 pb-12">
+
+        {/* Projetos recomendados pela IA */}
+        <div className="bg-white rounded-xl shadow p-5 mb-6">
+          <h2 className="text-sm font-semibold text-gray-600 mb-3">✨ Projetos para você</h2>
+
+          {loadingRec ? (
+            <p className="text-sm text-gray-400">Buscando recomendações...</p>
+          ) : recommended?.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {recommended.map((rec) => (
+                <div
+                  key={rec.project_id}
+                  className="border border-gray-200 rounded-lg p-3 flex justify-between items-start gap-4"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">{rec.title}</p>
+                    <p className="text-xs text-gray-500 mt-1">{rec.reason}</p>
+                  </div>
+                  <Link
+                    to={`/projects/${rec.project_id}`}
+                    className="text-xs text-blue-600 border border-blue-300 rounded-lg px-3 py-1 hover:bg-blue-50 transition whitespace-nowrap"
+                  >
+                    Ver projeto
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Complete seu perfil com bio e habilidades para receber recomendações.
+            </p>
+          )}
+        </div>
 
         {/* Filtros */}
         <div className="bg-white rounded-xl shadow p-4 mb-6 flex flex-col sm:flex-row gap-3">

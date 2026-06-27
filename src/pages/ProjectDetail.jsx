@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
+import { getRecommendedProfiles } from '../services/recommendations'
 import Header from '../components/Header'
 import ApplicationModal from '../components/ApplicationModal'
 import api from '../services/api'
@@ -29,6 +30,16 @@ export default function ProjectDetail() {
     queryFn: () => api.get(`/projects/${id}/`).then((res) => res.data),
   })
 
+  const isOwner = project?.owner_name === user?.name
+
+  // ✅ hook antes de qualquer return condicional
+  const { data: recommendations, isLoading: loadingRecs } = useQuery({
+    queryKey: ['recommend-profiles', id],
+    queryFn: () => getRecommendedProfiles(id),
+    enabled: isOwner && !isLoading, // só busca quando projeto já carregou e é dono
+    staleTime: 1000 * 60 * 5,
+  })
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -50,7 +61,6 @@ export default function ProjectDetail() {
     )
   }
 
-  const isOwner = project.owner_name === user?.name
   const isOpen = project.status === 'open'
 
   return (
@@ -111,6 +121,40 @@ export default function ProjectDetail() {
             </div>
           )}
 
+          {/* Perfis recomendados — apenas para o criador */}
+          {isOwner && (
+            <div className="mt-6">
+              <h2 className="text-sm font-semibold text-gray-600 mb-3">
+                ✨ Perfis recomendados pela IA
+              </h2>
+              {loadingRecs ? (
+                <p className="text-sm text-gray-400">Buscando recomendações...</p>
+              ) : recommendations?.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {recommendations.map((rec) => (
+                    <div
+                      key={rec.user_id}
+                      className="border border-gray-200 rounded-lg p-3 flex justify-between items-start gap-4"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">{rec.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">{rec.reason}</p>
+                      </div>
+                      <Link
+                        to={`/users/${rec.user_id}`}
+                        className="text-xs text-blue-600 border border-blue-300 rounded-lg px-3 py-1 hover:bg-blue-50 transition whitespace-nowrap"
+                      >
+                        Ver perfil
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">Nenhuma recomendação disponível no momento.</p>
+              )}
+            </div>
+          )}
+
           {/* Ações */}
           <div className="mt-6 flex gap-3 justify-end">
             {isOwner ? (
@@ -144,7 +188,6 @@ export default function ProjectDetail() {
         </div>
       </main>
 
-      {/* Modal de candidatura */}
       {showModal && (
         <ApplicationModal
           projectId={id}
