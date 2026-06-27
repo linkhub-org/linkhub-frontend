@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Header from '../components/Header'
 import { getMyProjects } from '../services/users'
+import { getSavedProjects } from '../services/social'
 
 function getStatusStyle(status) {
   switch (status) {
@@ -20,6 +21,13 @@ export default function Profile() {
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ['my-projects'],
     queryFn: () => getMyProjects().then((res) => res.data),
+    enabled: !!user,
+  })
+
+  const { data: savedProjects, isLoading: loadingSaved } = useQuery({
+    queryKey: ['saved-projects'],
+    queryFn: () => getSavedProjects().then((res) => res.data),
+    enabled: !!user,
   })
 
   if (!user) return null
@@ -33,7 +41,7 @@ export default function Profile() {
 
       <main className="max-w-2xl mx-auto mt-8 px-4 pb-12">
 
-        {/* Dados do perfil */}
+        {/* Card de perfil */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
             {user.avatar_url ? (
@@ -103,7 +111,6 @@ export default function Profile() {
           <p className="text-center text-gray-400">Carregando projetos...</p>
         ) : (
           <>
-            {/* Projetos criados */}
             <div className="mb-6">
               <h2 className="text-sm font-semibold text-gray-500 mb-3">
                 Meus projetos ({ownedProjects.length})
@@ -111,21 +118,14 @@ export default function Profile() {
               {ownedProjects.length === 0 ? (
                 <div className="bg-white rounded-xl shadow p-5 text-center">
                   <p className="text-gray-400 text-sm">Você ainda não criou nenhum projeto.</p>
-                  <Link
-                    to="/projects/new"
-                    className="text-blue-600 text-sm hover:underline mt-2 inline-block"
-                  >
+                  <Link to="/projects/new" className="text-blue-600 text-sm hover:underline mt-2 inline-block">
                     Criar projeto
                   </Link>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   {ownedProjects.map((p) => (
-                    <Link
-                      key={p.id}
-                      to={`/projects/${p.id}`}
-                      className="bg-white rounded-xl shadow p-4 hover:shadow-md transition block"
-                    >
+                    <Link key={p.id} to={`/projects/${p.id}`} className="bg-white rounded-xl shadow p-4 hover:shadow-md transition block">
                       <div className="flex justify-between items-start">
                         <p className="font-semibold text-gray-800">{p.title}</p>
                         <span className={`text-xs px-2 py-1 rounded-full font-semibold ${getStatusStyle(p.status)}`}>
@@ -139,8 +139,7 @@ export default function Profile() {
               )}
             </div>
 
-            {/* Projetos que participa */}
-            <div>
+            <div className="mb-6">
               <h2 className="text-sm font-semibold text-gray-500 mb-3">
                 Projetos que participo ({memberProjects.length})
               </h2>
@@ -151,11 +150,7 @@ export default function Profile() {
               ) : (
                 <div className="flex flex-col gap-3">
                   {memberProjects.map((p) => (
-                    <Link
-                      key={p.id}
-                      to={`/projects/${p.id}`}
-                      className="bg-white rounded-xl shadow p-4 hover:shadow-md transition block"
-                    >
+                    <Link key={p.id} to={`/projects/${p.id}`} className="bg-white rounded-xl shadow p-4 hover:shadow-md transition block">
                       <div className="flex justify-between items-start">
                         <p className="font-semibold text-gray-800">{p.title}</p>
                         <span className={`text-xs px-2 py-1 rounded-full font-semibold ${getStatusStyle(p.status)}`}>
@@ -173,6 +168,33 @@ export default function Profile() {
             </div>
           </>
         )}
+
+        {/* Projetos salvos */}
+        <div>
+          <h2 className="text-sm font-semibold text-gray-500 mb-3">Projetos salvos</h2>
+          {loadingSaved ? (
+            <p className="text-gray-500 text-sm text-center">Carregando...</p>
+          ) : savedProjects?.length === 0 ? (
+            <div className="bg-white rounded-xl shadow p-5 text-center">
+              <p className="text-gray-400 text-sm">Você ainda não salvou nenhum projeto.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {savedProjects?.map((saved) => (
+                <Link key={saved.id} to={`/projects/${saved.project_id}`} className="bg-white rounded-xl shadow p-4 hover:shadow-md transition block">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold text-gray-800">{saved.title}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${getStatusStyle(saved.status)}`}>
+                      {saved.status_display}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{saved.category_display} · por {saved.owner_name}</p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
       </main>
     </div>
   )

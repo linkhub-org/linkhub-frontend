@@ -6,6 +6,7 @@ import { getRecommendedProfiles } from '../services/recommendations'
 import Header from '../components/Header'
 import ApplicationModal from '../components/ApplicationModal'
 import api from '../services/api'
+import { saveProject, unsaveProject } from '../services/social'
 
 function getStatusStyle(status) {
   switch (status) {
@@ -24,6 +25,23 @@ export default function ProjectDetail() {
   const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [applied, setApplied] = useState(false)
+  const [loadingSave, setLoadingSave] = useState(false)
+
+  const handleSave = async () => {
+    setLoadingSave(true)
+    try {
+      if (project.is_saved) {
+        await unsaveProject(id)
+      } else {
+        await saveProject(id)
+      }
+      queryClient.invalidateQueries(['project', id])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingSave(false)
+    }
+  }
 
   const { data: project, isLoading, isError } = useQuery({
     queryKey: ['project', id],
@@ -75,7 +93,11 @@ export default function ProjectDetail() {
             <div>
               <h1 className="text-xl font-bold text-gray-800">{project.title}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                por {project.owner_name} · {project.institution_name}
+                por{' '}
+                <Link to={`/users/${project.owner_id}`} className="hover:text-blue-600 hover:underline">
+                  {project.owner_name}
+                </Link>
+                {' '}· {project.institution_name}
               </p>
             </div>
             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getStatusStyle(project.status)}`}>
@@ -157,6 +179,18 @@ export default function ProjectDetail() {
 
           {/* Ações */}
           <div className="mt-6 flex gap-3 justify-end">
+            <button
+              onClick={handleSave}
+              disabled={loadingSave}
+              className={`px-4 py-2 text-sm rounded-lg font-semibold transition disabled:opacity-50 ${
+                project.is_saved
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'border border-blue-300 text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              {loadingSave ? '...' : project.is_saved ? '★ Salvo' : '☆ Salvar'}
+            </button>
+            
             {isOwner ? (
               <>
                 <Link

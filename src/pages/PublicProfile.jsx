@@ -1,14 +1,35 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getPublicProfile } from '../services/users'
+import { followUser, unfollowUser } from '../services/social'
+import Header from '../components/Header'
 
 export default function PublicProfile() {
   const { id } = useParams()
+  const queryClient = useQueryClient()
+  const [loadingFollow, setLoadingFollow] = useState(false)
 
   const { data: user, isLoading, isError } = useQuery({
     queryKey: ['public-profile', id],
     queryFn: () => getPublicProfile(id).then((res) => res.data),
   })
+
+  const handleFollow = async () => {
+    setLoadingFollow(true)
+    try {
+      if (user.is_following) {
+        await unfollowUser(id)
+      } else {
+        await followUser(id)
+      }
+      queryClient.invalidateQueries(['public-profile', id])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingFollow(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -33,32 +54,53 @@ export default function PublicProfile() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <Link to="/feed" className="text-blue-600 font-bold text-xl">Linkhub</Link>
-        <Link to="/feed" className="text-sm text-gray-500 hover:underline">
-          Voltar ao feed
-        </Link>
-      </header>
+      <Header />
 
-      <main className="max-w-2xl mx-auto mt-8 px-4">
+      <main className="max-w-2xl mx-auto mt-8 px-4 pb-12">
         <div className="bg-white rounded-xl shadow p-6">
 
-          {/* Avatar e nome */}
-          <div className="flex items-center gap-4 mb-6">
-            {user.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt={user.name}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold">
-                {user.name?.charAt(0).toUpperCase()}
+          {/* Avatar, nome e botão seguir */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              {user.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold">
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">{user.name}</h1>
+                <p className="text-sm text-gray-500">{user.institution_name}</p>
               </div>
-            )}
-            <div>
-              <h1 className="text-xl font-bold text-gray-800">{user.name}</h1>
-              <p className="text-sm text-gray-500">{user.institution_name}</p>
+            </div>
+
+            <button
+              onClick={handleFollow}
+              disabled={loadingFollow}
+              className={`px-4 py-2 text-sm rounded-lg font-semibold transition disabled:opacity-50 ${
+                user.is_following
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {loadingFollow ? '...' : user.is_following ? 'Seguindo' : 'Seguir'}
+            </button>
+          </div>
+
+          {/* Contadores */}
+          <div className="flex gap-6 mb-6">
+            <div className="text-center">
+              <p className="text-lg font-bold text-gray-800">{user.followers_count}</p>
+              <p className="text-xs text-gray-500">Seguidores</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold text-gray-800">{user.following_count}</p>
+              <p className="text-xs text-gray-500">Seguindo</p>
             </div>
           </div>
 
