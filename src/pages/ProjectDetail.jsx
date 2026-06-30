@@ -94,7 +94,10 @@ export default function ProjectDetail() {
               <h1 className="text-xl font-bold text-gray-800">{project.title}</h1>
               <p className="text-sm text-gray-500 mt-1">
                 por{' '}
-                <Link to={`/users/${project.owner_id}`} className="hover:text-blue-600 hover:underline">
+                <Link
+                  to={isOwner ? '/profile' : `/users/${project.owner_id}`}
+                  className="hover:text-blue-600 hover:underline"
+                >
                   {project.owner_name}
                 </Link>
                 {' '}· {project.institution_name}
