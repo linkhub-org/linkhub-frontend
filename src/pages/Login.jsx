@@ -20,8 +20,12 @@ export default function Login() {
     try {
       await login(form.email, form.password)
       navigate('/feed')
-    } catch {
-      setError('E-mail ou senha incorretos.')
+    } catch (err) {
+      const detail =
+        err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
+        'E-mail ou senha incorretos.'
+      setError(detail)
     } finally {
       setLoading(false)
     }
@@ -64,7 +68,17 @@ export default function Login() {
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm">{error}</p>
+            <div className="text-sm text-red-500">
+              <p>{error}</p>
+              {error.includes('não confirmado') && (
+                <Link
+                  to="/resend-verification"
+                  className="text-blue-600 hover:underline mt-1 inline-block"
+                >
+                  Reenviar e-mail de confirmação
+                </Link>
+              )}
+            </div>
           )}
 
           <button
