@@ -16,6 +16,8 @@ import EditProject from '../pages/EditProject'
 import Followers from '../pages/Followers'
 import VerifyEmail from '../pages/VerifyEmail'
 import ResendVerification from '../pages/ResendVerification'
+import ForgotPassword from '../pages/ForgotPassword'
+import ResetPassword from '../pages/ResetPassword'
 
 // Rota protegida — redireciona para login se não autenticado
 function PrivateRoute({ children }) {
@@ -56,6 +58,8 @@ export default function AppRoutes() {
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/verify-email/:uid/:token" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
         <Route path="/resend-verification" element={<PublicRoute><ResendVerification /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/reset-password/:uid/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
         {/* Rotas protegidas */}
         <Route path="/feed" element={<PrivateRoute><Feed /></PrivateRoute>} />

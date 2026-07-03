@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSearchParams } from 'react-router-dom'
 
 export default function Login() {
   const { login } = useAuth()
@@ -8,6 +9,8 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+  const resetSuccess = searchParams.get('reset') === 'success'
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -39,6 +42,12 @@ export default function Login() {
         <p className="text-gray-500 text-sm text-center mb-6">
           Rede social de projetos universitários
         </p>
+
+        {resetSuccess && (
+          <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-4">
+            Senha redefinida com sucesso! Faça login com a nova senha.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -80,6 +89,15 @@ export default function Login() {
               )}
             </div>
           )}
+
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
 
           <button
             type="submit"
