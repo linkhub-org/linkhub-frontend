@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { getPublicProfile } from '../services/users'
 import Header from '../components/Header'
 import { getMyProjects } from '../services/users'
 import { getSavedProjects } from '../services/social'
@@ -17,6 +18,12 @@ function getStatusStyle(status) {
 
 export default function Profile() {
   const { user } = useAuth()
+
+  const { data: publicData } = useQuery({
+    queryKey: ['my-public-profile', user?.id],
+    queryFn: () => getPublicProfile(user?.id).then((res) => res.data),
+    enabled: !!user?.id,
+  })
 
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ['my-projects'],
@@ -43,7 +50,7 @@ export default function Profile() {
 
         {/* Card de perfil */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-4">
             {user.avatar_url ? (
               <img
                 src={user.avatar_url}
@@ -60,6 +67,18 @@ export default function Profile() {
               <p className="text-sm text-gray-500">{user.email}</p>
               <p className="text-sm text-gray-500">{user.institution_name}</p>
             </div>
+          </div>
+
+          {/* Contadores abaixo do avatar */}
+          <div className="flex gap-6 mb-4">
+            <Link to={`/users/${user.id}/followers?type=followers`} className="text-center hover:opacity-75">
+              <p className="text-lg font-bold text-gray-800">{user?.followers_count ?? '—'}</p>
+              <p className="text-xs text-gray-500">Seguidores</p>
+            </Link>
+            <Link to={`/users/${user.id}/followers?type=following`} className="text-center hover:opacity-75">
+              <p className="text-lg font-bold text-gray-800">{user?.following_count ?? '—'}</p>
+              <p className="text-xs text-gray-500">Seguindo</p>
+            </Link>
           </div>
 
           {user.course && (
@@ -81,10 +100,7 @@ export default function Profile() {
               <span className="text-sm font-semibold text-gray-600">Habilidades</span>
               <div className="flex flex-wrap gap-2 mt-1">
                 {user.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full"
-                  >
+                  <span key={skill} className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
                     {skill}
                   </span>
                 ))}
@@ -94,9 +110,7 @@ export default function Profile() {
 
           <div className="flex items-center justify-between mt-4">
             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-              user.is_available
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-100 text-gray-500'
+              user.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
             }`}>
               {user.is_available ? 'Disponível para projetos' : 'Indisponível'}
             </span>

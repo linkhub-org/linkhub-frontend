@@ -92,16 +92,16 @@ export default function PublicProfile() {
             </button>
           </div>
 
-          {/* Contadores */}
+          {/* Contadores*/}
           <div className="flex gap-6 mb-6">
-            <div className="text-center">
+            <Link to={`/users/${id}/followers?type=followers`} className="text-center hover:opacity-75">
               <p className="text-lg font-bold text-gray-800">{user.followers_count}</p>
               <p className="text-xs text-gray-500">Seguidores</p>
-            </div>
-            <div className="text-center">
+            </Link>
+            <Link to={`/users/${id}/followers?type=following`} className="text-center hover:opacity-75">
               <p className="text-lg font-bold text-gray-800">{user.following_count}</p>
               <p className="text-xs text-gray-500">Seguindo</p>
-            </div>
+            </Link>
           </div>
 
           {/* Curso */}
